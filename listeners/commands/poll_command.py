@@ -21,7 +21,7 @@ def poll_command_callback(command, ack: Ack, respond: Respond, logger: Logger):
         ack()
         logger.info(f" command => {command}")
 
-        verb_pattern = "(open|close|reopen|get)\s+(.*)"
+        verb_pattern = r"(open|close|reopen|get)\s+(.*)"
         verb_match = re.search(verb_pattern, command["text"])
 
         if verb_match:
@@ -43,10 +43,7 @@ def poll_command_callback(command, ack: Ack, respond: Respond, logger: Logger):
                     poll = open_poll(poll_name)
                     client.chat_postMessage(
                         channel=command["channel_name"],
-                        text=f"""
-                           Poll {poll['poll_name']} opened for voting:
-                           \n- :one: {poll['option_1']}\n- :two: {poll['option_2']}\n- :three: {poll['option_3']}
-                           """,
+                        text=f"Poll {poll['poll_name']} opened for voting:\n- :one: {poll['option_1']}\n- :two: {poll['option_2']}\n- :three: {poll['option_3']}",
                     )
                 case "close":
                     poll_name = extract_args_close(subject, logger)
@@ -77,10 +74,7 @@ def poll_command_callback(command, ack: Ack, respond: Respond, logger: Logger):
                     poll = get_poll(poll_name)
                     if poll is not None:
                         respond(
-                            f"""
-                            Poll {poll['poll_name']} is {poll['status']}:
-                            \n- :one: {poll['option_1']}\n- :two: {poll['option_2']}\n- :three: {poll['option_3']}
-                            """
+                            f"Poll {poll['poll_name']} is {poll['status']}:\n- :one: {poll['option_1']}\n- :two: {poll['option_2']}\n- :three: {poll['option_3']}"
                         )
                     else:
                         respond(f"No such a poll named {poll_name}")
@@ -98,7 +92,7 @@ def poll_command_callback(command, ack: Ack, respond: Respond, logger: Logger):
 
 
 def extract_args_create(subject: str, logger: Logger):
-    pattern = "(\w+)\s+\[(.+),(.+),(.+)\]"
+    pattern = r"(\w+)\s+\[(.+),(.+),(.+)\]"
     match = re.search(pattern, subject)
 
     if match:
@@ -114,7 +108,7 @@ def extract_args_create(subject: str, logger: Logger):
 
 
 def extract_args_close(subject: str, logger: Logger):
-    pattern = "(\w+)"
+    pattern = r"(\w+)"
     match = re.search(pattern, subject)
 
     if match:
@@ -127,7 +121,7 @@ def extract_args_close(subject: str, logger: Logger):
 
 
 def extract_args_open(subject: str, logger: Logger):
-    pattern = "(\w+)"
+    pattern = r"(\w+)"
     match = re.search(pattern, subject)
 
     if match:
@@ -140,7 +134,7 @@ def extract_args_open(subject: str, logger: Logger):
 
 
 def extract_args_get(subject: str, logger: Logger):
-    pattern = "(\w+)"
+    pattern = r"(\w+)"
     match = re.search(pattern, subject)
 
     if match:

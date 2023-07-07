@@ -10,7 +10,7 @@ client = WebClient(token=os.environ.get("SLACK_BOT_TOKEN"))
 
 
 def extract_poll_name(text: str):
-    pattern = "Poll (\w+) opened for voting.*"
+    pattern = r"Poll (\w+) opened for voting.*"
     match = re.search(pattern, text)
 
     if match:
