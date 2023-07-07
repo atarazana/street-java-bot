@@ -26,12 +26,12 @@ def init_db():
     # Load polls into a Pandas DataFrame
     polls = pd.read_csv(f'{os.environ.get("DATA_DIR")}/polls.csv')
     # Write the data to a sqlite table
-    polls.to_sql('polls', conn, if_exists='replace', index = False)
+    polls.to_sql("polls", conn, if_exists="replace", index=False)
 
     # Load actions into a Pandas DataFrame
     actions = pd.read_csv(f'{os.environ.get("DATA_DIR")}/actions.csv')
     # Write the data to a sqlite table
-    actions.to_sql('actions', conn, if_exists='replace', index = False)
+    actions.to_sql("actions", conn, if_exists="replace", index=False)
 
     # Save (commit) the changes
     conn.commit()
