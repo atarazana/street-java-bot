@@ -6,7 +6,7 @@ from logging import Logger
 
 from slack_sdk import WebClient
 
-from db import get_poll, open_poll, close_poll, reopen_poll
+from db import get_action_by_poll_name_and_option, get_poll, open_poll, close_poll, open_poll, create_poll
 
 POLL_OPEN_EXAMPLE_CALL = "/poll open my_poll [Delete Limit,Delete Quota,Delete all]"
 POLL_CLOSE_EXAMPLE_CALL = "/poll close my_poll"
@@ -30,13 +30,18 @@ def poll_command_callback(command, ack: Ack, respond: Respond, logger: Logger):
             logger.debug(f" verb => {verb} subject => {subject}")
 
             match verb.lower():
+                case "create":
+                    (poll_name, option_1, option_2, option_3) = extract_args_create(subject, logger)
+                    respond(f"Creating poll {poll_name}")
+                    create_poll(poll_name, option_1, option_2, option_3)
+                    respond(f"Poll {poll_name} created but closed:\n- :two: {option_1}\n- :one: {option_2}\n- :three: {option_3}")
                 case "open":
-                    (poll_name, option_1, option_2, option_3) = extract_args_open(subject, logger)
+                    (poll_name) = extract_args_open(subject, logger)
                     respond(f"Opening poll {poll_name}")
-                    open_poll(poll_name, option_1, option_2, option_3)
+                    poll = open_poll(poll_name)
                     client.chat_postMessage(
                         channel=command["channel_name"],
-                        text=f"Poll {poll_name} opened for voting:\n1. {option_1}\n2. {option_2}\n3. {option_3}",
+                        text=f"Poll {poll['poll_name']} opened for voting:\n- :one: {poll['option_1']}\n- :two: {poll['option_2']}\n- :three: {poll['option_3']}",
                     )
                 case "close":
                     poll_name = extract_args_close(subject, logger)
@@ -45,28 +50,29 @@ def poll_command_callback(command, ack: Ack, respond: Respond, logger: Logger):
                     if poll is not None:
                         close_poll(poll_name)
                         counts = poll["option_1_count"], poll["option_2_count"], poll["option_3_count"]
-                        winner = counts.index(max(counts))
+                        winner_option = counts.index(max(counts)) + 1
                         client.chat_postMessage(
                             channel=command["channel_name"],
-                            text=f"Poll {poll_name} closed, the winner is option {winner + 1}",
+                            text=f"Poll {poll_name} closed, the winner is option {winner_option}",
                         )
+                        action = get_action_by_poll_name_and_option(poll_name, winner_option)
+                        client.chat_postMessage(
+                            channel=command["channel_name"],
+                            text=f"Running {action['action']}",
+                        )
+                        cmd = action['action']
+                        print(f'Executing {cmd}')
+                        stream = os.popen(cmd)
+                        logger.debug(stream.read())
                     else:
                         respond(f"No such a poll named {poll_name}")
-                case "reopen":
-                    poll_name = extract_args_reopen(subject, logger)
-                    respond(f"Reopening poll {poll_name}")
-                    reopen_poll(poll_name)
-                    client.chat_postMessage(
-                        channel=command["channel_name"],
-                        text=f"Poll {poll_name} reopened",
-                    )
                 case "get":
                     poll_name = extract_args_get(subject, logger)
                     respond(f"Getting poll {poll_name}")
                     poll = get_poll(poll_name)
                     if poll is not None:
                         respond(
-                            f"Poll {poll['poll_name']} is {poll['status']}:\n1. {poll['option_1']}\n2. {poll['option_2']}\n3. {poll['option_3']}"
+                            f"Poll {poll['poll_name']} is {poll['status']}:\n- :one: {poll['option_1']}\n- :two: {poll['option_2']}\n- :three: {poll['option_3']}"
                         )
                     else:
                         respond(f"No such a poll named {poll_name}")
@@ -75,43 +81,15 @@ def poll_command_callback(command, ack: Ack, respond: Respond, logger: Logger):
                         channel=command["channel_name"],
                         text=f"Poll command not found!",
                     )
-
-            # if verb.lower() == 'open':
-            #     (poll_name, option_1, option_2, option_3) = extract_args_open(subject, logger)
-            #     client.chat_postMessage(
-            #         channel=command['channel_name'],
-            #         text=f'Opening poll {poll_name} with options:\n1. {option_1}\n2. {option_2}\n3. {option_3}',
-            #     )
-            #     open_poll(poll_name, option_1, option_2, option_3)
-            # else:
-            #     if verb.lower() == 'close':
-            #         poll_name = extract_args_close(subject, logger)
-            #         client.chat_postMessage(
-            #             channel=command['channel_name'],
-            #             text=f'Closing poll {poll_name}',
-            #         )
-            #         close_poll(poll_name)
-            #         poll = get_poll(poll_name)
-            #         counts = poll['option_1_count'],poll['option_2_count'],poll['option_3_count']
-            #         winner = counts.index(max(counts))
-            #         client.chat_postMessage(
-            #             channel=command['channel_name'],
-            #             text=f'Poll {poll_name} closed, the winner is option {winner + 1}',
-            #         )
-
-            #     else:
-            #         raise Exception("Arguments malformed for '/poll open' try this instead: {POLL_OPEN_EXAMPLE_CALL}")
         else:
             logger.error("Poll command not found!")
             respond(f"Malformed command: /poll {command['text']}")
-
-        # respond(f"Responding to the poll command! Your command was: {command['text']}")
     except Exception as e:
         logger.error(e)
         respond(f"Error command: /poll {command['text']} failed with this error: {e}")
 
 
-def extract_args_open(subject: str, logger: Logger):
+def extract_args_create(subject: str, logger: Logger):
     pattern = "(\w+)\s+\[(.+),(.+),(.+)\]"
     match = re.search(pattern, subject)
 
@@ -140,7 +118,7 @@ def extract_args_close(subject: str, logger: Logger):
     return poll_name
 
 
-def extract_args_reopen(subject: str, logger: Logger):
+def extract_args_open(subject: str, logger: Logger):
     pattern = "(\w+)"
     match = re.search(pattern, subject)
 

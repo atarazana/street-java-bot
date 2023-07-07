@@ -1,3 +1,4 @@
+from logging import Logger
 import os
 import re
 
@@ -29,7 +30,7 @@ def decode_reaction(reaction: str):
     return
 
 
-def reaction_added_callback(body, event, say):
+def reaction_added_callback(body, event, say, logger: Logger):
     # print(f'handle_reaction_added body: {body} event: {event} client: {client}')
 
     user_id = event["user"]
@@ -50,7 +51,7 @@ def reaction_added_callback(body, event, say):
             if option is None:
                 say(f"bad reaction {reaction}, should be: one, two, or three")
                 return
-            print(f"User {user_id} reacted to this poll {poll_name} with {reaction}")
+            logger.debug(f"User {user_id} reacted to this poll {poll_name} with {reaction}")
             add_vote_to_poll(poll_name, option)
         else:
             print("Message not found.")

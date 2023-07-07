@@ -1,0 +1,19 @@
+poll_name,option,action
+round_3_a,1,oc delete limitrange/guide-resource-limits -n ${PROJECT_NAME}
+round_3_a,2,echo "do nothing"
+round_3_a,3,echo "do nothing"
+round_3_b,1,oc patch resourcequota/guide-resource-quota  -p '{"spec" : { "hard" : {  "count/deployments.apps" : "5" } } }'
+round_3_b,2,echo "do nothing"
+round_3_b,3,echo "do nothing"
+round_5,1,echo "do nothing"
+round_5,2,oc create -n ${PROJECT_NAME} secret docker-registry street-java-pull-secret --docker-server=https://${REGISTRY} --docker-username=${CONTAINER_REGISTRY_USERNAME} --docker-password=${CONTAINER_REGISTRY_PASSWORD}
+round_5,3,echo "do nothing"
+round_8,1,echo "do nothing"
+round_8,2,${DATA_DIR}/round_8_command.sh
+round_8,3,echo "do nothing"
+round_9_a,1,echo "do nothing"
+round_9_a,2,echo "do nothing"
+round_9_a,3,${DATA_DIR}/round_9_a_command.sh
+round_9_b,1,echo "do nothing"
+round_9_b,2,${DATA_DIR}/round_9_b_command.sh
+round_9_b,3,echo "do nothing"
