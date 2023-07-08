@@ -1,8 +1,89 @@
 ---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: street-java-bot
+  namespace: street-java-bot
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: street-java-bot
+rules:
+- apiGroups:
+  - ''
+  resources:
+  - '*'
+  verbs:
+  - '*'
+- apiGroups:
+  - apps
+  resources:
+  - '*'
+  verbs:
+  - '*'
+- apiGroups:
+  - image.openshift.io
+  resources:
+  - '*'
+  verbs:
+  - '*'
+- apiGroups:
+  - route.openshift.io
+  resources:
+  - '*'
+  verbs:
+  - '*'
+- apiGroups:
+  - apps.openshift.io
+  resources:
+  - '*'
+  verbs:
+  - '*'
+- apiGroups:
+  - monitoring.coreos.com
+  resources:
+  - '*'
+  verbs:
+  - '*'
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - '*'
+  verbs:
+  - '*'
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: street-java-bot
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: street-java-bot
+subjects:
+- kind: ServiceAccount
+  name: street-java-bot
+  namespace: street-java-bot
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: street-java-bot-self-provisioner
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: self-provisioner
+subjects:
+- kind: ServiceAccount
+  name: street-java-bot
+  namespace: street-java-bot
+---
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
   name: street-java-bot-db-pvc
+  namespace: street-java-bot
 spec:
   accessModes:
     - ReadWriteOnce
@@ -17,6 +98,7 @@ metadata:
   labels:
     app: street-java-bot
   name: street-java-bot
+  namespace: street-java-bot
 spec:
   ports:
   - name: http
@@ -33,6 +115,7 @@ metadata:
     app: street-java-bot
     app.openshift.io/runtime: python
   name: street-java-bot
+  namespace: street-java-bot
 spec:
   replicas: 1
   selector:
@@ -43,6 +126,7 @@ spec:
       labels:
         app: street-java-bot
     spec:
+      serviceAccountName: street-java-bot
       volumes:
         - name: street-java-bot-db-pvc
           persistentVolumeClaim:
@@ -67,6 +151,7 @@ metadata:
   labels:
     app: street-java-bot
   name: street-java-bot
+  namespace: street-java-bot
 spec:
   port:
     targetPort: http
