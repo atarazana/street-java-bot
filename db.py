@@ -2,9 +2,10 @@ import os
 import sqlite3
 import pandas as pd
 
+DB_PATH = f"{os.environ.get('DB_DIR')}/chatbot.db"
 
 def init_db():
-    conn = sqlite3.connect(f"{os.environ.get('DB_DIR')}/chatbot.db")
+    conn = sqlite3.connect(DB_PATH)
 
     c = conn.cursor()
 
@@ -42,7 +43,7 @@ def init_db():
 
 
 def create_poll(poll_name: str, option_1: str, option_2: str, option_3: str):
-    conn = sqlite3.connect("chatbot.db")
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     # This is open to SQL injection to some degree, should be
     c.execute(
@@ -67,7 +68,7 @@ def create_poll(poll_name: str, option_1: str, option_2: str, option_3: str):
 
 
 def close_poll(poll_name: str):
-    conn = sqlite3.connect("chatbot.db")
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     # This is open to SQL injection to some degree, should be
     c.execute("UPDATE polls SET status=:status WHERE poll_name=:poll_name", {"status": "CLOSED", "poll_name": poll_name})
@@ -76,7 +77,7 @@ def close_poll(poll_name: str):
 
 
 def open_poll(poll_name: str):
-    conn = sqlite3.connect("chatbot.db")
+    conn = sqlite3.connect(DB_PATH)
     conn.row_factory = dict_factory
     c = conn.cursor()
 
@@ -106,7 +107,7 @@ def dict_factory(cursor, row):
 
 
 def get_poll(poll_name: str):
-    conn = sqlite3.connect("chatbot.db")
+    conn = sqlite3.connect(DB_PATH)
     conn.row_factory = dict_factory
     c = conn.cursor()
     # This is open to SQL injection to some degree, should be
@@ -125,7 +126,7 @@ def get_poll(poll_name: str):
 
 
 def get_action_by_poll_name_and_option(poll_name: str, option: int):
-    conn = sqlite3.connect("chatbot.db")
+    conn = sqlite3.connect(DB_PATH)
     conn.row_factory = dict_factory
     c = conn.cursor()
     # This is open to SQL injection to some degree, should be
@@ -144,7 +145,7 @@ def get_action_by_poll_name_and_option(poll_name: str, option: int):
 
 
 def add_vote_to_poll(poll_name: str, option: str):
-    conn = sqlite3.connect("chatbot.db")
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     # This is open to SQL injection to some degree, should be
     c.execute(f"UPDATE polls SET {option}_count={option}_count+1 WHERE poll_name=:poll_name", {"poll_name": poll_name})
@@ -153,7 +154,7 @@ def add_vote_to_poll(poll_name: str, option: str):
 
 
 def update_app(app, namespace, user):
-    conn = sqlite3.connect("chatbot.db")
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     # This is open to SQL injection to some degree, should be
     c.execute(
@@ -169,7 +170,7 @@ def update_app(app, namespace, user):
 
 
 def select_app(user: str):
-    conn = sqlite3.connect("chatbot.db")
+    conn = sqlite3.connect(DB_PATH)
 
     c = conn.cursor()
     # This is open to SQL injection to some degree, should be
