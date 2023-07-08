@@ -4,7 +4,7 @@ import pandas as pd
 
 
 def init_db():
-    conn = sqlite3.connect("chatbot.db")
+    conn = sqlite3.connect(f"{os.environ.get('DB_DIR')}/chatbot.db")
 
     c = conn.cursor()
 
