@@ -2,7 +2,7 @@ poll_name,option,action
 round_3_a,1,oc delete limitrange/guide-resource-limits -n ${PROJECT_NAME}
 round_3_a,2,echo "do nothing"
 round_3_a,3,echo "do nothing"
-round_3_b,1,oc patch resourcequota/guide-resource-quota  -p '{"spec" : { "hard" : {  "count/deployments.apps" : "5" } } }'
+round_3_b,1,oc patch resourcequota/guide-resource-quota  -p '{"spec" : { "hard" : {  "count/deployments.apps" : "5" } } }' -n ${PROJECT_NAME}
 round_3_b,2,echo "do nothing"
 round_3_b,3,echo "do nothing"
 round_5,1,echo "do nothing"

@@ -1,10 +1,12 @@
 import os
 import re
+import subprocess
 
 from slack_bolt import Ack, Respond
 from logging import Logger
 
 from slack_sdk import WebClient
+from slack_sdk.models.blocks import SectionBlock
 
 from db import get_action_by_poll_name_and_option, get_poll, close_poll, open_poll, create_poll
 
@@ -63,9 +65,9 @@ def poll_command_callback(command, ack: Ack, respond: Respond, logger: Logger):
                             text=f"Running {action['action']}",
                         )
                         cmd = action["action"]
-                        print(f"Executing {cmd}")
-                        stream = os.popen(cmd)
-                        logger.debug(stream.read())
+                        logger.debug(f"Executing {cmd}")
+                        (returncode, stdout, stderr) = execute_shell_command(cmd)
+                        respond(blocks=blocks_for_cmd_result(returncode, stdout, stderr))
                     else:
                         respond(f"No such a poll named {poll_name}")
                 case "get":
@@ -144,3 +146,24 @@ def extract_args_get(subject: str, logger: Logger):
         raise Exception(f"Arguments malformed for '/poll get' try this instead: {POLL_GET_EXAMPLE_CALL}")
 
     return poll_name
+
+
+def execute_shell_command(command):
+    try:
+        # Execute the shell command and capture the output and errors
+        result = subprocess.run(command, shell=True, capture_output=True, text=True, timeout=2)
+
+        return (result.returncode, result.stdout, result.stderr)
+    except subprocess.CalledProcessError as e:
+        # An error occurred while executing the command
+        print(f"Command execution failed with return code {e.returncode}")
+        print(f"Error output: {e.output}")
+
+
+def blocks_for_cmd_result(returncode, stdout, stderr):
+    blocks = [SectionBlock(text=f"*Result* after running latest command with *code({returncode})*:")]
+    if stdout:
+        blocks.append(SectionBlock(text=f"*Output:* {stdout}"))
+    if stderr:
+        blocks.append(SectionBlock(text=f"*Error:* {stderr}"))
+    return blocks
