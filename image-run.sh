@@ -11,14 +11,22 @@ podman run -it --rm -p 8080:8080 \
   -e SLACK_SIGNING_SECRET=${SLACK_SIGNING_SECRET} \
   -e SLACK_APP_TOKEN=${SLACK_APP_TOKEN} \
   -e DATA_DIR=/deployments/data \
-  -e DEV_USERNAME=user1 \
-  -e DEV_PASSWORD=openshift \
-  -e PROJECT_NAME=street-java-${DEV_USERNAME} \
-  -e FRUIT_SERVICE_APP_NAME=fruit-service-${DEV_USERNAME} \
-  -e FRUIT_GATEWAY_APP_NAME=fruit-gateway-${DEV_USERNAME} \
-  -e SLACK_WEBHOOK=changeme \
-  -e SLACK_CHANNEL=changeme \
-  -e REPOSITORY="image-registry.openshift-image-registry.svc:5000/${PROJECT_NAME}/fruit-gateway" \
-  -e TAG=1.0.0-SNAPSHOT \
+  -e DB_DIR=/deployments \
+  -e DEV_USERNAME=${DEV_USERNAME} \
+  -e DEV_PASSWORD=${DEV_PASSWORD} \
+  -e PROJECT_NAME=${PROJECT_NAME} \
+  -e FRUIT_SERVICE_APP_NAME=${FRUIT_SERVICE_APP_NAME} \
+  -e FRUIT_GATEWAY_APP_NAME=${FRUIT_GATEWAY_APP_NAME} \
+  -e SLACK_WEBHOOK=${SLACK_WEBHOOK} \
+  -e SLACK_CHANNEL=${SLACK_CHANNEL} \
+  -e REPOSITORY=${REPOSITORY} \
+  -e TAG=${TAG} \
+  -e REGISTRY=${REGISTRY} \
+  -e CONTAINER_REGISTRY_USERNAME=${CONTAINER_REGISTRY_USERNAME} \
+  -e CONTAINER_REGISTRY_PASSWORD=${CONTAINER_REGISTRY_PASSWORD} \
+  -e KUBECONFIG=/var/kubeconfig/config \
+  --volume kubeconfig:/var/kubeconfig \
+  --entrypoint bash \
+  --user 1234 \
   --name bot localhost/street-java-bot:${VERSION}
 
